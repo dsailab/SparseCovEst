@@ -20,7 +20,26 @@ class PDTE_FC(object):
             for j in range((len(b))):
                 ele=b[i][j]
                 soft_thresh[i][j] = np.sign(ele) * max(abs(ele) - lam[i][j], 0) 
-        return soft_thresh           
+        return soft_thresh   
+    def mcp_derivative(self,x):
+        
+        return (self.lambda_val-abs(x)/self.a_val)*(abs(x)<=self.lambda_val*self.a_val)+0*(abs(x)>self.lambda_val*self.a_val)    
+    def mcp_penalty(self, x):
+        is_linear = (np.abs(x) <= self.lambda_val*self.a_val)
+        # is_quadratic = np.logical_and(self.lambda_val < np.abs(x), np.abs(x) <= self.a_val * self.lambda_val)
+        is_constant = (self.a_val * self.lambda_val) < np.abs(x)
+        
+        linear_part = (self.lambda_val*abs(x)-(x**2)/(2*self.a_val) )* is_linear
+        # quadratic_part = (2 * self.a_val * self.lambda_val * np.abs(x) - abs(x)**2 - self.lambda_val**2) / (2 * (self.a_val - 1)) * is_quadratic
+        constant_part =  (0.5*(self.lambda_val**2)*self.a_val)* is_constant
+        return linear_part + constant_part
+    def update_w(self,x):
+        scad_matrix=self.mcp_derivative(x)
+        return scad_matrix-np.diag(scad_matrix.diagonal())
+    
+    def function_value(self,x):
+        return (1/2)*np.linalg.norm(x-self.s,'fro')**2-self.t*np.log(np.linalg.det(x))-np.trace(self.mcp_penalty(x))+np.sum(self.mcp_penalty(x))    
+                    
     def process(self,x):
         value_list=[]   
         x=self.x
@@ -65,25 +84,7 @@ class PDTE_FC(object):
                 
             
     
-    def mcp_derivative(self,x):
-        
-        return (self.lambda_val-abs(x)/self.a_val)*(abs(x)<=self.lambda_val*self.a_val)+0*(abs(x)>self.lambda_val*self.a_val)    
-    def mcp_penalty(self, x):
-        is_linear = (np.abs(x) <= self.lambda_val*self.a_val)
-        # is_quadratic = np.logical_and(self.lambda_val < np.abs(x), np.abs(x) <= self.a_val * self.lambda_val)
-        is_constant = (self.a_val * self.lambda_val) < np.abs(x)
-        
-        linear_part = (self.lambda_val*abs(x)-(x**2)/(2*self.a_val) )* is_linear
-        # quadratic_part = (2 * self.a_val * self.lambda_val * np.abs(x) - abs(x)**2 - self.lambda_val**2) / (2 * (self.a_val - 1)) * is_quadratic
-        constant_part =  (0.5*(self.lambda_val**2)*self.a_val)* is_constant
-        return linear_part + constant_part
-    def update_w(self,x):
-        scad_matrix=self.mcp_derivative(x)
-        return scad_matrix-np.diag(scad_matrix.diagonal())
-    
-    def function_value(self,x):
-        return (1/2)*np.linalg.norm(x-self.s,'fro')**2-self.t*np.log(np.linalg.det(x))-np.trace(self.mcp_penalty(x))+np.sum(self.mcp_penalty(x))    
-                    
+  
                     
                 
             
