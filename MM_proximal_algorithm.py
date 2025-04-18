@@ -1,12 +1,13 @@
 import numpy as np 
 class PDTE_FC(object):
-    def __init__(self,x,s,t,fhi,gamma,lambda_val,dimension):
+    def __init__(self,x,s,t,fhi,gamma,lambda_val,a_val,dimension):
         self.x=x
         self.s=s #sampe covariance
         self.t=t #tau
         self.fhi=fhi #step size 
         self.gamma=gamma
         self.lambda_val=lambda_val
+        self.a_val=a_val
         self.dimension=dimension
     def f_function(self,x):
         return 0.5*(np.linalg.norm(x-self.s)**2)-self.t*np.log(np.linalg.det(x))
